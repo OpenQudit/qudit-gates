@@ -1,20 +1,22 @@
-use qudit_core::matrix::MatMut;
-use qudit_core::matrix::MatVecMut;
-use qudit_core::unitary::DifferentiableUnitaryFn;
-use qudit_core::unitary::UnitaryFn;
-use qudit_core::ComplexScalar;
+//use qudit_core::matrix::MatMut;
+//use qudit_core::matrix::MatVecMut;
+use qudit_core::radices;
+//use qudit_core::unitary::DifferentiableUnitaryFn;
+//use qudit_core::unitary::UnitaryFn;
+//use qudit_core::ComplexScalar;
 use qudit_core::HasParams;
+use qudit_core::QuditRadices;
 use qudit_expr::{UnitaryExpression, UnitaryExpressionGenerator};
 
 pub mod constant {
     pub mod h;
     pub mod i;
     pub mod swap;
+    pub mod x;
 }
 pub mod parameterized {
     pub mod p;
     pub mod u3;
-    pub mod cp;
 }
 
 pub mod composed {
@@ -24,7 +26,7 @@ pub mod composed {
 
 pub use constant::i::IGate;
 pub use constant::h::HGate;
-pub use parameterized::cp::CPGate;
+pub use constant::x::XGate;
 pub use parameterized::p::PGate;
 pub use parameterized::u3::U3Gate;
 pub use composed::control::ControlledGate;
@@ -33,20 +35,39 @@ pub use composed::control::ControlledGate;
 pub enum Gate {
     HGate(HGate),
     PGate(PGate),
+    XGate(XGate),
     U3Gate(U3Gate),
-    CPGate(CPGate),
+    Controlled(ControlledGate),
     Expression(UnitaryExpression),
 }
 
 impl Gate {
+    #[allow(non_snake_case)]
     pub fn H(radix: usize) -> Self {
         Gate::HGate(HGate::new(radix))
     }
-
-    pub fn CP() -> Self {
-        Gate::CPGate(CPGate)
+    
+    #[allow(non_snake_case)]
+    pub fn P(radix: usize) -> Self {
+        Gate::PGate(PGate::new(radix))
+    }
+    
+    #[allow(non_snake_case)]
+    pub fn X(radix: usize) -> Self {
+        Gate::XGate(XGate::new(radix))
     }
 
+    #[allow(non_snake_case)]
+    pub fn CP() -> Self {
+        Gate::Controlled(ControlledGate::new(PGate::new(2), radices![2], vec![vec![1]]))
+    }
+
+    #[allow(non_snake_case)]
+    pub fn CX() -> Self {
+        Gate::Controlled(ControlledGate::new(XGate::new(2), radices![2], vec![vec![1]]))
+    }
+
+    #[allow(non_snake_case)]
     pub fn U3() -> Self {
         Gate::U3Gate(U3Gate)
     }
@@ -57,8 +78,9 @@ impl UnitaryExpressionGenerator for Gate {
         match self {
             Gate::HGate(gate) => gate.gen_expr(),
             Gate::PGate(gate) => gate.gen_expr(),
+            Gate::XGate(gate) => gate.gen_expr(),
             Gate::U3Gate(gate) => gate.gen_expr(),
-            Gate::CPGate(gate) => gate.gen_expr(),
+            Gate::Controlled(gate) => gate.gen_expr(),
             Gate::Expression(expr) => expr.clone(),
         }
     }
@@ -67,12 +89,12 @@ impl UnitaryExpressionGenerator for Gate {
 impl HasParams for Gate {
     fn num_params(&self) -> usize {
         match self {
-            Gate::HGate(gate) => 0,
-            Gate::CPGate(gate) => 1,
-            Gate::U3Gate(gate) => 3,
+            Gate::HGate(_gate) => 0,
+            Gate::XGate(_gate) => 0,
+            Gate::U3Gate(_gate) => 3,
             Gate::PGate(gate) => gate.radix - 1,
+            Gate::Controlled(gate) => gate.num_params(),
             Gate::Expression(expr) => expr.num_params(),
-            _ => self.gen_expr().num_params()
         }
     }
 }
@@ -81,10 +103,10 @@ impl HasParams for Gate {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use qudit_core::matrix::{Mat, MatVec};
+    use qudit_core::matrix::MatVec;
     use qudit_core::unitary::{UnitaryFn, DifferentiableUnitaryFn, UnitaryMatrix};
     use qudit_core::c64;
-    use qudit_expr::{DifferentiationLevel, Module, ModuleBuilder};
+    //use qudit_expr::{DifferentiationLevel, Module, ModuleBuilder};
 
     #[test]
     fn test_h_gate() {

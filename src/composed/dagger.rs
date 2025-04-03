@@ -1,4 +1,4 @@
-use qudit_core::{HasParams, QuditRadices, QuditSystem, ToRadix};
+use qudit_core::{HasParams, QuditRadices, QuditSystem};
 use qudit_expr::{UnitaryExpression, UnitaryExpressionGenerator};
 
 /// An arbitrary inverted gate.

@@ -124,7 +124,7 @@ impl ControlledGate {
     ///
     /// # Arguments
     ///
-    /// * `gate` - The gate to control.
+    /// * `expr` - The gate to control.
     ///
     /// * `control_radixes` - The number of levels for each control qudit.
     ///
@@ -154,7 +154,7 @@ impl ControlledGate {
     /// // TODO: Come back to later
     pub fn new<E: UnitaryExpressionGenerator>(
         expr: E,
-        control_radices: QuditRadices,
+        control_radices: QuditRadices, // TODO: Make a ToRadices generic
         control_levels: Vec<Vec<usize>>,
     ) -> Self {
         if control_radices.len() != control_levels.len() {
